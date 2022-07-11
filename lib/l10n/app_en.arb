@@ -1,0 +1,14 @@
+{
+    "demoMovie": "Demo Movie",
+    "@language":{
+      "description": "The App Title"
+    },
+    "trendingMovie": "Trending Movies",
+    "@helloWorld": {
+      "description": "List of Trending Movies"
+    },
+    "moviesNowPlaying": "Now Playing Movies",
+    "@hello": {
+      "description": "List of Now Playing Movies"
+    }
+}

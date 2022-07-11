@@ -1,6 +1,7 @@
 
 
 
+import 'package:demo_movie/src/models/genres_model.dart';
 import 'package:demo_movie/src/models/get_genres_model.dart';
 import 'package:demo_movie/src/models/get_movies_model.dart';
 import 'package:demo_movie/src/models/movie_model.dart';
@@ -50,7 +51,7 @@ class GenresInitialState extends MovieStates {}
 class GenresLoadingState extends MovieStates {}
 
 class GenresLoadedState extends MovieStates {
-  GetGenresModel genresData;
+  List<GenresModel> genresData;
   GenresLoadedState({required this.genresData});
 }
 

@@ -5,6 +5,7 @@ import 'package:demo_movie/src/utils/utils.dart';
 import 'package:demo_movie/src/widgets/movie_card.dart';
 import 'package:demo_movie/src/widgets/title_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MovieTrendingList extends StatefulWidget {
   final List<Movie>? movieList;
@@ -21,7 +22,7 @@ class _MovieTrendingListState extends State<MovieTrendingList> {
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TitleText(title: "Trending"),
+        TitleText(title: AppLocalizations.of(context)?.trendingMovie ?? "Trending Movies"),
         // SizedBox(
         // height: screenHeight(context, dividedBy: 70),
         // ),

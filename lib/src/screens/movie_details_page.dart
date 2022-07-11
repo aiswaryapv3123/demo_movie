@@ -281,6 +281,33 @@ class _MovieDetailsPageState extends State<MovieDetailsPage> {
                     height: screenHeight(context, dividedBy: 90),
                   ),
                   Text(
+                    "${widget.movieData!.genreId1}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  Text(
+                    "${widget.movieData!.genreId2}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                  // Text(
+                  //   "${widget.movieData!.genreId3}",
+                  //   style: const TextStyle(
+                  //     fontSize: 12,
+                  //     fontWeight: FontWeight.w400,
+                  //     color: Colors.blueGrey,
+                  //   ),
+                  // ),
+                  SizedBox(
+                    height: screenHeight(context, dividedBy: 90),
+                  ),
+                  Text(
                     widget.movieData!.overview ?? " ",
                     style: TextStyle(
                       fontSize: 12,

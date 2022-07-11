@@ -55,7 +55,7 @@ class _MovieAppBarState extends State<MovieAppBar> {
                   onTap: () {
                     widget.onTapRightIcon!();
                   },
-                  child: widget.leftIcon!),
+                  child: widget.rightIcon!),
           ],
         ));
   }

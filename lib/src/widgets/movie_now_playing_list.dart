@@ -5,6 +5,7 @@ import 'package:demo_movie/src/utils/utils.dart';
 import 'package:demo_movie/src/widgets/now_playing_movie_card.dart';
 import 'package:demo_movie/src/widgets/title_text.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MovieNowPlayingList extends StatefulWidget {
   final List<Movie>? movieList;
@@ -21,7 +22,7 @@ class _MovieNowPlayingListState extends State<MovieNowPlayingList> {
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const TitleText(title: "Now Playing"),
+         TitleText(title: AppLocalizations.of(context)?.moviesNowPlaying ?? "Now Playing"),
         SizedBox(
         height: screenHeight(context, dividedBy: 70),
         ),

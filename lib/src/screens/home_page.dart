@@ -6,6 +6,7 @@ import 'package:demo_movie/src/bloc/bloc.dart';
 import 'package:demo_movie/src/bloc/states.dart';
 import 'package:demo_movie/src/bloc/events.dart';
 import 'package:demo_movie/src/db/data_base.dart';
+import 'package:demo_movie/src/models/genres_model.dart';
 import 'package:demo_movie/src/models/get_genres_model.dart';
 import 'package:demo_movie/src/models/get_movies_model.dart';
 import 'package:demo_movie/src/models/movie_model.dart';
@@ -16,6 +17,8 @@ import 'package:demo_movie/src/utils/utils.dart';
 import 'package:demo_movie/src/widgets/app_bar.dart';
 import 'package:demo_movie/src/widgets/build_button.dart';
 import 'package:demo_movie/src/widgets/categories_list.dart';
+import 'package:demo_movie/src/widgets/genre_tab_view.dart';
+import 'package:demo_movie/src/widgets/language_picker_widget.dart';
 import 'package:demo_movie/src/widgets/movie_now_playing_list.dart';
 import 'package:demo_movie/src/widgets/movie_trending_list.dart';
 import 'package:flutter/cupertino.dart';
@@ -24,6 +27,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_offline/flutter_offline.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -36,71 +40,38 @@ class _HomePageState extends State<HomePage> {
   Future<GetGenresModel>? futureGenres;
   final MovieBloc trendingmovieBloc = MovieBloc();
   final MovieBloc movieBloc = MovieBloc();
+  final MovieBloc genreBloc = MovieBloc();
   late List<Movie> movies;
   bool? online;
+  String genreId = '12';
+  List<Movie>? movieByGenreList;
+  List<Movie>? movieByGenre;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    // context.read<MovieBloc>().g;
     // _loadData();
     // movieBloc.add(MovieData());
     movieBloc.add(MovieData());
     trendingmovieBloc.add(TrendingMovieData());
+    genreBloc.add(GenresData());
     futureGenres = getGenres();
+    getMovieByGenre(genreId);
     // refreshNotes();
   }
 
-  Future refreshNotes() async {
-    // setState(() => isLoading = true);
-    movies = await MovieDatabase.instance.readAllMovies(tableMovie);
-    print("Moviessssss");
-    print("------------");
-    for (int i = 0; i < movies.length; i++) {
-      print(movies[i].title);
-    }
-
-    // setState(() => isLoading = false);
+  Future getMovieByGenre(String genreId) async {
+    movieByGenreList =
+        await MovieDatabase.instance.readAllMoviesByGenre(genreId);
+    setState(() {
+      movieByGenre = movieByGenreList;
+    });
   }
 
   Future<void> refreshMovies() async {
-    try {
-      final response = await http.get(Uri.parse(Url.movies
-          // "https://api.themoviedb.org/3/discover/movie?api_key=6baea5ef838664a28d1e5b5e8ca1635b"
-          ));
-      MoviesModel movies = moviesModelFromJson(response.body);
-      print("Data movies");
-      print(movies);
-      print(movies.results);
-      print(movies.totalResults);
-      movies.results ?? print("Nothing");
-      for (int i = 0; i < movies.results!.length; i++) {
-        final movie = Movie(
-          title: movies.results![i].title,
-          posterPath: movies.results![i].posterPath,
-          voteAverage: movies.results![i].voteAverage,
-          overview: movies.results![i].overview,
-          releaseDate: movies.results![i].releaseDate,
-        );
-        MovieDatabase.instance.create(movie, tableMovie);
-        // refreshNotes();
-        print("Movie DATABASE");
-        print("---------------");
-        print(MovieDatabase.instance);
-      }
-      setState(() {});
-    } on SocketException {
-      print("NO Internet");
-    } catch (e) {
-      print("Error ");
-      print(e);
-    }
-    // moviesList = await MovieDatabase.instance.readAllMovies();
-    // print("Moviessssss");
-    // print("------------");
-    // for (int i = 0; i < moviesList.length; i++) {
-    //   print(moviesList[i].title);
-    // }
-    // return moviesList;
+    // setState(() {});
   }
 
   Future<GetGenresModel> getGenres() async {
@@ -120,12 +91,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor:Theme.of(context).appBarTheme.backgroundColor,
           leading: Container(),
           elevation: 4,
-          actions: const [
+          actions: [
             MovieAppBar(
-              title: "Demo Movie",
+              title: AppLocalizations.of(context)?.demoMovie ?? "Demo Movie",
               leftIcon: Icon(Icons.menu_rounded),
+              rightIcon: LanguagePickerWidget(),
+              onTapRightIcon: () {},
             )
           ],
         ),
@@ -183,7 +157,9 @@ class _HomePageState extends State<HomePage> {
                         SingleChildScrollView(
                           child: Container(
                             padding: EdgeInsets.only(
-                                left: screenWidth(context, dividedBy: 30)),
+                              left: screenWidth(context, dividedBy: 30),
+                              right: screenWidth(context, dividedBy: 30),
+                            ),
                             child: Column(
                               children: [
                                 SizedBox(
@@ -230,6 +206,7 @@ class _HomePageState extends State<HomePage> {
                                           ),
                                         );
                                       }
+                                      print("Loading movies state");
                                       return SizedBox(
                                         width:
                                             screenWidth(context, dividedBy: 1),
@@ -254,7 +231,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 ),
                                 SizedBox(
-                                  height: screenHeight(context, dividedBy: 30),
+                                  height: screenHeight(context, dividedBy: 80),
                                 ),
                                 BlocProvider(
                                   create: (context) => trendingmovieBloc,
@@ -263,12 +240,14 @@ class _HomePageState extends State<HomePage> {
                                           MovieStates state) {
                                     if (state is TrendingErrorState) {
                                       return Container(
-                                        height: screenHeight(context, dividedBy: 7),
-                                        width: screenWidth(context, dividedBy: 2),
+                                        height:
+                                            screenHeight(context, dividedBy: 7),
+                                        width:
+                                            screenWidth(context, dividedBy: 2),
                                         decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(7),
-                                            color:Constants.colors[3]
-                                        ),
+                                            borderRadius:
+                                                BorderRadius.circular(7),
+                                            color: Constants.colors[3]),
                                         child: Center(
                                           child: Text(state.error.toString(),
                                               style: Theme.of(context)
@@ -315,172 +294,31 @@ class _HomePageState extends State<HomePage> {
                                     );
                                   }),
                                 ),
-                                // BlocBuilder<MovieBloc, MovieStates>(
-                                //     builder: (BuildContext context, MovieStates state) {
-                                //   if (state is TrendingErrorState) {
-                                //     return SizedBox(
-                                //       width: screenWidth(context, dividedBy: 1),
-                                //       height: screenHeight(context, dividedBy: 1),
-                                //       child: Center(
-                                //         child: Text(state.error.toString(),
-                                //             style: Theme.of(context).textTheme.bodyLarge),
-                                //       ),
-                                //     );
-                                //   }
-                                //   if (state is TrendingLoadedState) {
-                                //     List<Result> trendingMovieList = state.moviesData.results!;
-                                //     return SizedBox(
-                                //       width: MediaQuery.of(context).size.width,
-                                //       child: Column(
-                                //         children: [
-                                //           if (trendingMovieList.isNotEmpty)
-                                //             MovieTrendingList(
-                                //               movieList: trendingMovieList,
-                                //             ),
-                                //           // CategoriesList(),
-                                //         ],
-                                //       ),
-                                //     );
-                                //   }
-                                //   return Container(
-                                //     width: screenWidth(context, dividedBy: 1),
-                                //     height: screenHeight(context, dividedBy: 7),
-                                //     color: Colors.white,
-                                //     child: const Center(
-                                //       child: SizedBox(
-                                //         width: 18,
-                                //         height: 18,
-                                //         child: CircularProgressIndicator(
-                                //           strokeWidth: 2,
-                                //           valueColor: AlwaysStoppedAnimation<Color>(
-                                //             Colors.white,
-                                //           ),
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   );
-                                // }),
 
-                                /// futurebuilder
+                                ///
+                                ///
                                 SizedBox(
-                                  width: screenWidth(context, dividedBy: 1),
-                                  // height: screenHeight(context, dividedBy: 1),
-                                  // color: Colors.pink,
-                                  child: FutureBuilder<GetGenresModel>(
-                                    future: futureGenres,
-                                    builder: (context, snapshot) {
-                                      if (snapshot.hasData) {
-                                        return SizedBox(
+                                  height: screenHeight(context, dividedBy: 80),
+                                ),
+                                GenreTabView(
+                                  onTapItem: (val) async {
+                                    getMovieByGenre(val);
+                                  },
+                                ),
+                                if (movieByGenre != null)
+                                  movieByGenre!.isNotEmpty
+                                      ? MovieTrendingList(
+                                          movieList: movieByGenre,
+                                        )
+                                      : SizedBox(
                                           width: screenWidth(context,
                                               dividedBy: 1),
                                           height: screenHeight(context,
-                                              dividedBy: 20),
-                                          child: snapshot.data!.genres != null
-                                              ? ListView.builder(
-                                                  itemCount: snapshot
-                                                      .data!.genres!.length,
-                                                  shrinkWrap: true,
-                                                  scrollDirection:
-                                                      Axis.horizontal,
-                                                  // physics: const NeverScrollableScrollPhysics(),
-                                                  itemBuilder: (ctx, index) {
-                                                    return Row(
-                                                      children: [
-                                                        BuildButton(
-                                                          label: snapshot
-                                                                  .data!
-                                                                  .genres![
-                                                                      index]
-                                                                  .name ??
-                                                              "",
-                                                          onTap: () {},
-                                                        ),
-                                                        SizedBox(
-                                                          width: screenWidth(
-                                                              context,
-                                                              dividedBy: 60),
-                                                        ),
-                                                        // Text(snapshot.data!.genres![index].name ??
-                                                        //     "")
-                                                      ],
-                                                    );
-                                                  },
-                                                )
-                                              : const Text("No Data"),
-                                        );
-                                      } else if (snapshot.hasError) {
-                                        print(snapshot.error);
-                                        return Text("${snapshot.error}");
-                                      }
-                                      // To show a spinner while loading
-                                      return SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.width,
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                0.8,
-                                        child: const Center(
-                                          child: SizedBox(
-                                            width: 18,
-                                            height: 18,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                Colors.pink,
-                                              ),
-                                            ),
+                                              dividedBy: 5),
+                                          child: const Center(
+                                            child: Text("No Movies"),
                                           ),
                                         ),
-                                      );
-                                    },
-                                  ),
-                                ),
-
-                                // BlocBuilder<MovieBloc, MovieStates>(
-                                //     builder: (BuildContext context, MovieStates state) {
-                                //   if (state is GenresErrorState) {
-                                //     return SizedBox(
-                                //       width: screenWidth(context, dividedBy: 1),
-                                //       height: screenHeight(context, dividedBy: 1),
-                                //       child: Center(
-                                //         child: Text(state.error.toString(),
-                                //             style: Theme.of(context).textTheme.bodyLarge),
-                                //       ),
-                                //     );
-                                //   }
-                                //   if (state is GenresLoadedState) {
-                                //     List<Genre> genreList = state.genresData.genres!;
-                                //     return SizedBox(
-                                //       width: MediaQuery.of(context).size.width,
-                                //       child: Column(
-                                //         children: [
-                                //           if (genreList.isNotEmpty) Text("dfjdhsfsfdshfjd"),
-                                //           // MovieTrendingList(
-                                //           //   movieList: trendingMovieList,
-                                //           // ),
-                                //           // CategoriesList(),
-                                //         ],
-                                //       ),
-                                //     );
-                                //   }
-                                //   return SizedBox(
-                                //     width: screenWidth(context, dividedBy: 1),
-                                //     height: screenHeight(context, dividedBy: 7),
-                                //     child: const Center(
-                                //       child: SizedBox(
-                                //         width: 18,
-                                //         height: 18,
-                                //         child: CircularProgressIndicator(
-                                //           strokeWidth: 2,
-                                //           valueColor: AlwaysStoppedAnimation<Color>(
-                                //             Colors.white,
-                                //           ),
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   );
-                                // }),
                               ],
                             ),
                           ),
